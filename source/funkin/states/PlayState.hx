@@ -21,8 +21,10 @@ import core.structures.ALESong;
 import core.structures.ALEHud;
 import core.structures.Point;
 import core.plugins.ALEPluginsHandler;
+import core.enums.CharacterType;
 import core.enums.SongType;
 import core.enums.Rating;
+import core.Main;
 
 import utils.ALEFormatter;
 import utils.Score;
@@ -72,7 +74,7 @@ class PlayState extends ScriptState
         botplay = value;
 
         for (strl in strumLines)
-            strl.botplay = strl.type != 'player' || botplay;
+            strl.botplay = strl.type != PLAYER || botplay;
 
         return botplay;
     }
@@ -193,13 +195,28 @@ class PlayState extends ScriptState
         if (!CoolVars.mobile)
             return;
 
+        final plugin = Main.mobileControlsPlugin;
+
+        for (obj in hitboxes)
+        {
+            if (obj == null)
+                continue;
+
+            plugin.remove(obj, true);
+
+            for (key in obj.keys)
+                plugin.stateButtons.remove(key);
+
+            obj.destroy();
+        }
+
         hitboxes.clear();
 
         for (index => strum in strumLine.data.strums)
         {
             final keysArray:Array<Null<FlxKey>> = CoolUtil.getControl(strum.keybind[0], strum.keybind[1]);
 
-            final hitbox:Hitbox = new Hitbox(strumLine.data.strums.length, index,
+            final hitbox:Hitbox = new Hitbox(strumLine.data.strums.length, index, keysArray,
                 () -> {
                     for (key in keysArray)
                         if (key != null)
@@ -211,9 +228,13 @@ class PlayState extends ScriptState
                             justReleasedKey(new KeyboardEvent('keyUp', false, true, 0, key));
                 }
             );
-            hitbox.cameras = [ALEPluginsHandler.pluginsCamera];
-            
+            hitbox.cameras = plugin.cameras;
+
             hitboxes.add(hitbox);
+            
+            plugin.add(hitbox);
+
+            plugin.addToMap(hitbox, plugin.stateButtons, keysArray);
         }
     }
 
@@ -438,9 +459,11 @@ class PlayState extends ScriptState
 
     function eventHit(event:ALEEvent)
     {
-        scriptCallbackCall(ON, 'EventHit', cast([event.id], Array<Dynamic>).concat(event.values));
+        final args:Array<Dynamic> = cast([event.id], Array<Dynamic>).concat(event.values);
 
-        scriptCallbackCall(POST, 'EventHit', cast([event.id], Array<Dynamic>).concat(event.values));
+        scriptCallbackCall(ON, 'EventHit', args);
+
+        scriptCallbackCall(POST, 'EventHit', args);
     }
 
     public var countdownSprite:FlxSprite;
@@ -563,17 +586,14 @@ class PlayState extends ScriptState
 
                 final defaultVoice:Null<FlxSound> = switch (cast char.type)
                 {
-                    case 'player':
+                    case PLAYER:
                         playerVoices;
 
-                    case 'opponent':
+                    case OPPONENT:
                         opponentVoices;
 
-                    case 'extra':
+                    case EXTRA:
                         extraVoices;
-
-                    default:
-                        null;
                 };
 
                 if (defaultVoice != null)
@@ -819,14 +839,14 @@ class PlayState extends ScriptState
 
         if (scriptResult)
         {
-            if (character.type == 'player')
+            if (character.type == PLAYER)
             {
-                health += note.hitHealth;
-
-                score += rating.toScore();
-
-                if (note.type == 'note')
+                if (note.type == NOTE)
                 {
+                    health += note.hitHealth;
+
+                    score += rating.toScore();
+
                     accuracyMod += rating.toAccuracy();
 
                     totalPlayed++;
@@ -855,9 +875,9 @@ class PlayState extends ScriptState
 
         if (scriptResult)
         {
-            if (character.type == 'player')
+            if (character.type == PLAYER)
             {
-                if (note.type == 'note')
+                if (note.type == NOTE)
                 {
                     combo = 0;
 
@@ -968,10 +988,10 @@ class PlayState extends ScriptState
 
             icons = new FlxTypedGroup<Icon>();
 
-            playerIcon = new Icon('player');
+            playerIcon = new Icon(PLAYER);
             addIcon(playerIcon);
 
-            opponentIcon = new Icon('opponent');
+            opponentIcon = new Icon(OPPONENT);
             addIcon(opponentIcon);
 
             if (dad != null)
@@ -1102,16 +1122,14 @@ class PlayState extends ScriptState
         {
             switch (strumLine.type)
             {
-                case 'opponent':
+                case OPPONENT:
                     opponentsStrumLines.add(strumLine);
 
-                case 'player':
+                case PLAYER:
                     playersStrumLines.add(strumLine);
 
-                case 'extra':
+                case EXTRA:
                     extrasStrumLines.add(strumLine);
-
-                default:
             }
 
             strumLines.add(strumLine);
@@ -1120,22 +1138,54 @@ class PlayState extends ScriptState
         scriptCallbackCall(POST, 'StrumLineAdd', null, [strumLine], []);
     }
 
+    function cacheCharacter(character:String)
+    {
+        final json = ALEFormatter.getCharacter(character, OPPONENT);
+
+        if (json == null)
+            return;
+
+        switch (json.type)
+        {
+            case SHEET:
+                Paths.getMultiAtlas(json.textures);
+            case MAP:
+                Paths.getAnimateAtlas(json.textures[0]);
+            case FRAMES:
+                Paths.image(json.textures[0]);
+        }
+    }
+
+    function cacheIcon(icon:String, type:CharacterType)
+    {
+        final json = ALEFormatter.getIcon(icon);
+
+        if (json == null)
+            return;
+
+        switch (json.type)
+        {
+            case SHEET:
+                Paths.getMultiAtlas(json.textures);
+            case MAP:
+                Paths.getAnimateAtlas(json.textures[0]);
+            case FRAMES:
+                Paths.image(json.textures[0]);
+        }
+    }
+
     function addCharacter(character:Character)
     {
         if (scriptCallbackCall(ON, 'CharacterAdd', null, [character], []))
         {
             switch (character.type)
             {
-                case 'opponent':
+                case OPPONENT:
                     opponents.add(character);
-
-                case 'player':
+                case PLAYER:
                     players.add(character);
-
-                case 'extra':
+                case EXTRA:
                     extras.add(character);
-
-                default:
             }
 
             characters.add(character);
@@ -1233,7 +1283,7 @@ class PlayState extends ScriptState
 
     function getCharacterCamera(character:Character):FlxPoint
     {
-        final result:FlxPoint = FlxPoint.get(character.getMidpoint().x + character.data.cameraPosition.x * (character.type == 'player' ? -1 : 1), character.getMidpoint().y + character.data.cameraPosition.y);
+        final result:FlxPoint = FlxPoint.get(character.getMidpoint().x + character.data.cameraPosition.x * (character.type == PLAYER ? -1 : 1), character.getMidpoint().y + character.data.cameraPosition.y);
 
         if (stage.data.cameraOffset != null)
         {

@@ -1,10 +1,11 @@
 package funkin.visuals.plugins;
 
+import flixel.addons.display.shapes.FlxShapeCircle;
 import flixel.input.keyboard.FlxKey;
 
-import flixel.addons.display.shapes.FlxShapeCircle;
+import core.interfaces.ITactileButton;
 
-class MobileButton extends FlxSpriteGroup
+class MobileButton extends FlxSpriteGroup implements ITactileButton
 {
     public var keys:Array<FlxKey>;
 

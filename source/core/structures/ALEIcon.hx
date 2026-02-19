@@ -3,7 +3,7 @@ package core.structures;
 import core.enums.SpriteType;
 
 typedef ALEIcon = {
-    var texture:String;
+    var textures:Array<String>;
     var type:SpriteType;
     var animations:Array<ALEIconAnimation>;
     var scale:Point;

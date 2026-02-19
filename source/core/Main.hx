@@ -87,32 +87,18 @@ class Main extends Sprite
 		super();
 
 		#if android
-		var shouldStop:Bool = false;
-
 		if (AndroidVersion.SDK_INT >= AndroidVersionCode.M)
 		{
-			if (AndroidVersion.SDK_INT < AndroidVersionCode.TIRAMISU)
-			{
-				AndroidPermissions.requestPermissions(['READ_EXTERNAL_STORAGE', 'WRITE_EXTERNAL_STORAGE']);
-
-				shouldStop = true;
-			}
-
 			if (!AndroidEnvironment.isExternalStorageManager())
 			{
 				AndroidSettings.requestSetting('MANAGE_APP_ALL_FILES_ACCESS_PERMISSION');
 				
-				shouldStop = true;
+				CoolUtil.showPopUp('Notice', 'The game starts automatically when requesting permissions without them having been granted yet\n\nPlease start the game again once the permissions have been granted');
+
+				Sys.exit(0);
+
+				return;
 			}
-		}
-
-		if (shouldStop)
-		{
-			CoolUtil.showPopUp('Notice', 'The game starts automatically when requesting permissions without them having been granted yet\n\nPlease start the game again once the permissions have been granted');
-
-			Sys.exit(0);
-
-			return;
 		}
 		#end
 

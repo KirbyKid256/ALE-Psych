@@ -45,7 +45,7 @@ class Icon extends Bopper
 
         data.animations.sort((a, b) -> Math.floor(a.percent - b.percent));
 
-        loadFrames(cast data.type, ['icons/' + data.texture], data.frames);
+        loadFrames(cast data.type, data.textures, data.frames);
 
         for (animData in data.animations)
             addAnimation(cast data.type, animData.name, animData.prefix, animData.framerate, animData.loop, animData.indices);

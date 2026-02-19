@@ -362,7 +362,7 @@ class ALEFormatter
             return cast json;
 
         return {
-            texture: id,
+            textures: ['icons/' + id],
             type: "frames",
             frames: 2,
             animations: [

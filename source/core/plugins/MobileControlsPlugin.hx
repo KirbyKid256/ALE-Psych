@@ -2,13 +2,15 @@ package core.plugins;
 
 import haxe.ds.IntMap;
 
+import core.interfaces.ITactileButton;
 import core.enums.KeyCheck;
 
 import flixel.input.keyboard.FlxKey;
+import flixel.FlxBasic;
 
 import funkin.visuals.plugins.MobileButton;
 
-class MobileControlsPlugin extends FlxTypedGroup<MobileButton>
+class MobileControlsPlugin extends FlxTypedGroup<FlxBasic>
 {
     override public function new()
     {
@@ -24,30 +26,36 @@ class MobileControlsPlugin extends FlxTypedGroup<MobileButton>
         FlxG.signals.preStateCreate.remove(clean);
     }
     
-    public var stateButtons:IntMap<MobileButton> = new IntMap();
-    public var subStateButtons:IntMap<MobileButton> = new IntMap();
+    public var stateButtons:IntMap<Array<ITactileButton>> = new IntMap();
+    public var subStateButtons:IntMap<Array<ITactileButton>> = new IntMap();
     
     public function checkKeys(keys:Array<Int>, prop:KeyCheck):Bool
     {
         for (key in keys)
         {
-            final button:MobileButton = subStateButtons.get(key) ?? stateButtons.get(key);
-            
-            if (button == null)
+            final group:Array<ITactileButton> = subStateButtons.get(key) ?? stateButtons.get(key);
+
+            if (group == null)
                 continue;
-            
-            final property:Bool = switch(prop)
+
+            for (obj in group)
             {
-                case KeyCheck.PRESSED:
-                    button.pressed;
-                case KeyCheck.JUST_PRESSED:
-                    button.justPressed;
-                case KeyCheck.JUST_RELEASED:
-                    button.justReleased;
+                if (obj == null)
+                    continue;
+                
+                final property:Bool = switch(prop)
+                {
+                    case KeyCheck.PRESSED:
+                        obj.pressed;
+                    case KeyCheck.JUST_PRESSED:
+                        obj.justPressed;
+                    case KeyCheck.JUST_RELEASED:
+                        obj.justReleased;
+                }
+                
+                if (obj.exists && property)
+                    return true;
             }
-            
-            if (button.exists && property)
-                return true;
         }
         
         return false;
@@ -59,35 +67,38 @@ class MobileControlsPlugin extends FlxTypedGroup<MobileButton>
             destroyButtons(group);
     }
 
-    public function restartButtons(group:IntMap<MobileButton>)
+    public function restartButtons(group:IntMap<Array<ITactileButton>>)
     {
         for (key in group.keys())
-            group.get(key).restart();
+            for (obj in group.get(key))
+                obj.restart();
     }
     
-    public function destroyButtons(group:IntMap<MobileButton>)
+    public function destroyButtons(group:IntMap<Array<ITactileButton>>)
     {
         for (key in group.keys())
         {
-            final obj:MobileButton = group.get(key);
-            
-            obj.destroy();
-            
-            remove(obj, true);
+            for (obj in group.get(key))
+            {
+                obj.destroy();
+                
+                remove(cast obj, true);
+            }
         }
         
         group.clear();
     }
     
-    public function toggleButtons(group:IntMap<MobileButton>, show:Bool)
+    public function toggleButtons(group:IntMap<Array<ITactileButton>>, show:Bool)
     {
         for (key in group.keys())
         {
-            final button:MobileButton = group.get(key);
-            
-            button.restart();
-            
-            button.exists = show;
+            for (obj in group.get(key))
+            {
+                obj.restart();
+                
+                obj.exists = show;
+            }
         }
     }
     
@@ -95,23 +106,10 @@ class MobileControlsPlugin extends FlxTypedGroup<MobileButton>
     {
         final uniqueButton:Bool = buttonsData.length == 1;
         
-        final group:IntMap<MobileButton> = subState ? subStateButtons : stateButtons;
+        final group:IntMap<Array<ITactileButton>> = subState ? subStateButtons : stateButtons;
         
         for (index => data in buttonsData)
         {
-            var shouldContinue:Bool = false;
-            
-            for (key in data.keys)
-                if (group.exists(key))
-                {
-                    shouldContinue = true;
-                    
-                    break;
-                }
-            
-            if (shouldContinue)
-                continue;
-            
             final angle:Float = Math.PI * 2 / buttonsData.length * index;
     
             final button:MobileButton = new MobileButton(data.keys, data.label);
@@ -123,8 +121,21 @@ class MobileControlsPlugin extends FlxTypedGroup<MobileButton>
             
             button.cameras = cameras;
 
-            for (key in data.keys)
-                group.set(key, button);
+            addToMap(button, group, data.keys);
+        }
+    }
+
+    public function addToMap(obj:ITactileButton, map:IntMap<Array<ITactileButton>>, keys:Array<Int>)
+    {
+        for (key in keys)
+        {
+            if (!map.exists(key))
+                map.set(key, []);
+
+            if (map.get(key).contains(obj))
+                continue;
+
+            map.get(key).push(obj);
         }
     }
 }
