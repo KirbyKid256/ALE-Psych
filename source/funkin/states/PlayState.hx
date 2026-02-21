@@ -95,6 +95,10 @@ class PlayState extends ScriptState
     {
         super();
 
+        #if LUA_ALLOWED
+        luaCustomCallbacks = [scripting.lua.callbacks.LuaPlayState];
+        #end
+
         this.type = type ?? FREEPLAY;
 
         this.playlist = playlist ??= ['bopeebo'];
@@ -712,7 +716,7 @@ class PlayState extends ScriptState
         scriptCallbackCall(POST, 'CamerasInit');
     }
 
-    var strumLines:FlxTypedGroup<StrumLine>;
+    public var strumLines:FlxTypedGroup<StrumLine>;
 
     var opponentsStrumLines:FlxTypedGroup<StrumLine>;
     var playersStrumLines:FlxTypedGroup<StrumLine>;
@@ -1104,16 +1108,16 @@ class PlayState extends ScriptState
 
     // Utils
 
-    inline function addBehindOpponents(obj:FlxBasic)
+    inline public function addBehindOpponents(obj:FlxBasic)
         addBehindGroup(opponents, obj);
 
-    inline function addBehindPlayers(obj:FlxBasic)
+    inline public function addBehindPlayers(obj:FlxBasic)
         addBehindGroup(players, obj);
 
-    inline function addBehindExtras(obj:FlxBasic)
+    inline public function addBehindExtras(obj:FlxBasic)
         addBehindGroup(extras, obj);
 
-    function addBehindGroup(group:FlxTypedGroup<Dynamic>, obj:FlxBasic)
+    public function addBehindGroup(group:FlxTypedGroup<Dynamic>, obj:FlxBasic)
         insert(members.indexOf(group.members[0]), obj);
 
     function addStrumLine(strumLine:StrumLine)
@@ -1491,12 +1495,12 @@ class PlayState extends ScriptState
     function get_strumLineNotes():FlxTypedGroup<Strum>
         return strums;
 
-    inline function addBehindDad(obj:FlxBasic)
+    inline public function addBehindDad(obj:FlxBasic)
         addBehindOpponents(obj);
 
-    inline function addBehindBF(obj:FlxBasic)
+    inline public function addBehindBF(obj:FlxBasic)
         addBehindPlayers(obj);
 
-    inline function addBehindGF(obj:FlxBasic)
+    inline public function addBehindGF(obj:FlxBasic)
         addBehindExtras(obj);
 }

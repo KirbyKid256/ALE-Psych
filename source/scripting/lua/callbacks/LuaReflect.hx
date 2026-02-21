@@ -4,9 +4,7 @@ import scripting.lua.LuaPresetBase;
 
 import scripting.lua.LuaPresetUtils;
 
-import Type;
-
-using StringTools;
+import haxe.Constraints.IMap;
 
 class LuaReflect extends LuaPresetBase
 {
@@ -28,6 +26,12 @@ class LuaReflect extends LuaPresetBase
         {
             if (tagIs(groupTag, FlxTypedGroup))
                 setTag(tag, getTag(groupTag).members[index]);
+        });
+
+        set('setVariableFromMap', function (variable:String, tag:String, key:String)
+        {
+            if (tagIs(tag, IMap))
+                setTag(variable, getTag(tag).get(key));
         });
 
         set('getProperty', function(tag:String):Dynamic
