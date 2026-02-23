@@ -12,45 +12,51 @@ import funkin.substates.ModsMenuSubState;
 
 class ALEGame extends FlxGame
 {
-    override public function new(initial:InitialState)
-    {
-        super(1280, 720, initial, 120, 120, true, false);
+	override public function new(initial:InitialState)
+	{
+		super(1280, 720, initial, 120, 120, true, false);
 
-        _customSoundTray = ALESoundTray;
-    }
+		_customSoundTray = ALESoundTray;
+	}
 
-    @:unreflective var visibleConsole:Bool = false;
+	@:unreflective var visibleConsole:Bool = false;
 
-    override public function update()
-    {
-        DesktopAPI.setWindowTitle();
+	override public function update()
+	{
+		DesktopAPI.setWindowTitle();
 
-        super.update();
+		super.update();
 
-        Conductor.update();
+		Conductor.update();
 
-        if (Controls.CONTROL && Controls.SHIFT && Paths.UNIQUE_MOD == null)
-        {
-            if (FlxG.keys.anyJustPressed(ClientPrefs.controls.engine.reset_game))
-                CoolUtil.resetGame();
+		if (Controls.CONTROL && Controls.SHIFT)
+		{
+			if (CoolVars.data.developerMode)
+			{
+				if (FlxG.keys.anyJustPressed(ClientPrefs.controls.engine.reset_game))
+					CoolUtil.resetGame();
+			}
 
-            if (FlxG.keys.anyJustPressed(ClientPrefs.controls.engine.switch_mod))
-            {
-                if (FlxG.state.subState != null)
-                    FlxG.state.subState.close();
+			if (Paths.UNIQUE_MOD == null)
+			{
+				if (FlxG.keys.anyJustPressed(ClientPrefs.controls.engine.switch_mod))
+				{
+					if (FlxG.state.subState != null)
+						FlxG.state.subState.close();
+	
+					CoolUtil.openSubState(new funkin.substates.ModsMenuSubState());
+				}
+			}
+		}
 
-                CoolUtil.openSubState(new funkin.substates.ModsMenuSubState());
-            }
-        }
+		#if WINDOWS_API
+		if (FlxG.keys.justPressed.F2)
+		{
+			if (!visibleConsole)
+				DesktopAPI.showConsole();
 
-        #if WINDOWS_API
-        if (FlxG.keys.justPressed.F2)
-        {
-            if (!visibleConsole)
-                DesktopAPI.showConsole();
-
-            visibleConsole = true;
-        }
-        #end
-    }
+			visibleConsole = true;
+		}
+		#end
+	}
 }
