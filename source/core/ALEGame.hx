@@ -29,7 +29,7 @@ class ALEGame extends FlxGame
 
         Conductor.update();
 
-        if (Controls.CONTROL && Controls.SHIFT)
+        if (Controls.CONTROL && Controls.SHIFT && Paths.UNIQUE_MOD == null)
         {
             if (FlxG.keys.anyJustPressed(ClientPrefs.controls.engine.reset_game))
                 CoolUtil.resetGame();
