@@ -31,7 +31,7 @@ class DebugCounter extends Sprite
 		for (field in [new EngineField(), new ConductorField(), new FlixelField()].concat([for (field in data) new DebugField(field)]))
 			addField(field);
 
-		if (!CoolVars.mobile && CoolVars.data.enableFpsCounter || CoolVars.mobile && CoolVars.data.developerMode && CoolVars.data.enableFpsCounter)
+		if (CoolVars.data.enableFpsCounter)
 			switchMode(0);
 		else
 			switchMode(2);
