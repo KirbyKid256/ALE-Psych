@@ -10,158 +10,161 @@ import utils.cool.KeyUtil;
 
 class DebugCounter extends Sprite
 {
-    @:unreflective var fps:DebugField;
+	@:unreflective var fps:DebugField;
 
-    var fields:Array<DebugField> = [];
+	var fields:Array<DebugField> = [];
 
-    public function new(data:Array<Array<DebugFieldText>>)
-    {
-        super();
+	public function new(data:Array<Array<DebugFieldText>>)
+	{
+		super();
 		
 		FlxG.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyPressed);
 
-        FlxG.stage.addEventListener('activate', onFocus);
-        FlxG.stage.addEventListener('deactivate', onUnFocus);
+		FlxG.stage.addEventListener('activate', onFocus);
+		FlxG.stage.addEventListener('deactivate', onUnFocus);
 
-        fps = new FPSField();
-        addField(fps);
+		fps = new FPSField();
+		addField(fps);
 
-        curHeight = fps.bg.scaleY;
+		curHeight = fps.bg.scaleY;
 
-        for (field in [new EngineField(), new ConductorField(), new FlixelField()].concat([for (field in data) new DebugField(field)]))
-            addField(field);
+		for (field in [new EngineField(), new ConductorField(), new FlixelField()].concat([for (field in data) new DebugField(field)]))
+			addField(field);
 
-        switchMode(0);
-    }
+		if (!CoolVars.mobile && CoolVars.data.enableFpsCounter || CoolVars.mobile && CoolVars.data.developerMode && CoolVars.data.enableFpsCounter)
+			switchMode(0);
+		else
+			switchMode(2);
+	}
 
-    var curHeight:Float = 0;
+	var curHeight:Float = 0;
 
-    public function addField(field:DebugField)
-    {
-        fields.push(field);
+	public function addField(field:DebugField)
+	{
+		fields.push(field);
 
-        addChild(field);
-        
-        field.y = curHeight;
+		addChild(field);
+		
+		field.y = curHeight;
 
-        curHeight += field.height;
-    }
+		curHeight += field.height;
+	}
 
-    public function removeField(field:DebugField)
-    {
-        fields.remove(field);
+	public function removeField(field:DebugField)
+	{
+		fields.remove(field);
 
-        removeChild(field);
+		removeChild(field);
 
-        sortFields();
-    }
+		sortFields();
+	}
 
-    public function sortFields()
-    {
-        curHeight = fps.bg.scaleY;
+	public function sortFields()
+	{
+		curHeight = fps.bg.scaleY;
 
-        for (field in fields)
-        {
-            field.y = curHeight;
+		for (field in fields)
+		{
+			field.y = curHeight;
 
-            curHeight += field.bg.scaleY;
-        }
-    }
+			curHeight += field.bg.scaleY;
+		}
+	}
 
-    private var timer:Int = 0;
+	private var timer:Int = 0;
 
-    private var focused:Bool = true;
+	private var focused:Bool = true;
 
-    override function __enterFrame(time:Int)
-    {
-        if ((focused || !FlxG.autoPause) && visible)
-        {
-            if (timer > 50)
-            {
-                timer = 0;
-            } else {
-                timer += time;
+	override function __enterFrame(time:Int)
+	{
+		if ((focused || !FlxG.autoPause) && visible)
+		{
+			if (timer > 50)
+			{
+				timer = 0;
+			} else {
+				timer += time;
 
-                return;
-            }
-        } else {
-            return;
-        }
-        
-        super.__enterFrame(time);
-    }
+				return;
+			}
+		} else {
+			return;
+		}
+		
+		super.__enterFrame(time);
+	}
 
-    public function destroy()
-    {
+	public function destroy()
+	{
 		FlxG.stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyPressed);
 
-        FlxG.stage.removeEventListener('activate', onFocus);
-        FlxG.stage.removeEventListener('deactivate', onUnFocus);
+		FlxG.stage.removeEventListener('activate', onFocus);
+		FlxG.stage.removeEventListener('deactivate', onUnFocus);
 
-        for (field in fields)
-        {
-            removeField(field);
+		for (field in fields)
+		{
+			removeField(field);
 
-            field = null;
-        }
-        
-        removeChild(fps);
+			field = null;
+		}
+		
+		removeChild(fps);
 
-        fps = null;
-    }
+		fps = null;
+	}
 
-    function onFocus(_)
-        focused = true;
+	function onFocus(_)
+		focused = true;
 
-    function onUnFocus(_)
-        focused = false;
-    
-    public var curMode:Int = 0;
+	function onUnFocus(_)
+		focused = false;
+	
+	public var curMode:Int = 0;
 
-    public function switchMode(change:Int = 1)
-    {
-        curMode += change;
+	public function switchMode(change:Int = 1)
+	{
+		curMode += change;
 
-        curMode = curMode % 3;
+		curMode = curMode % 3;
 
-        switch (curMode)
-        {
-            case 0:
-                for (field in fields)
-                    field.visible = false;
+		switch (curMode)
+		{
+			case 0:
+				for (field in fields)
+					field.visible = false;
 
-                fps.visible = true;
-                fps.bg.visible = false;
-            
-                for (label in fps.labels)
-                    label.text = label.valueFunction();
+				fps.visible = true;
+				fps.bg.visible = false;
+			
+				for (label in fps.labels)
+					label.text = label.valueFunction();
 
-                fps.updateBG();
-            case 1:
-                for (field in fields)
-                {
-                    for (label in field.labels)
-                        label.text = label.valueFunction();
+				fps.updateBG();
+			case 1:
+				for (field in fields)
+				{
+					for (label in field.labels)
+						label.text = label.valueFunction();
 
-                    field.updateBG();
+					field.updateBG();
 
-                    field.visible = true;
-                }
+					field.visible = true;
+				}
 
-                fps.bg.visible = true;
-            case 2:
-                for (field in fields)
-                    field.visible = false;
+				fps.bg.visible = true;
+			case 2:
+				for (field in fields)
+					field.visible = false;
 
-                fps.visible = false;
-        }
-    }
-    
-    function onKeyPressed(event:KeyboardEvent)
-    {
+				fps.visible = false;
+		}
+	}
+	
+	function onKeyPressed(event:KeyboardEvent)
+	{
 		var key = KeyUtil.openFLToFlixelKey(event);
 
 		if (ClientPrefs.controls.engine.fps_counter.contains(key))
-            switchMode();
-    }
+			switchMode();
+	}
 }

@@ -8,8 +8,6 @@ import api.DesktopAPI;
 
 import core.backend.ALESoundTray;
 
-import funkin.substates.ModsMenuSubState;
-
 class ALEGame extends FlxGame
 {
 	override public function new(initial:InitialState)

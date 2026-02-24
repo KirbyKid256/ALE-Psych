@@ -8,6 +8,7 @@ typedef ALEData =
 
     var verbose:Bool;
     var allowDebugPrint:Bool;
+    var enableFpsCounter:Bool;
 
     var initialState:String;
     var freeplayState:String;

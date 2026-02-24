@@ -54,6 +54,7 @@ class CoolVars
 
 			verbose: false,
 			allowDebugPrint: true,
+			enableFpsCounter: true,
 
 			initialState: 'TitleState',
 			freeplayState: 'FreeplayState',
